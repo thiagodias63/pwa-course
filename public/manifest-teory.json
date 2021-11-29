@@ -1,0 +1,27 @@
+{
+    "name": "Nome do app",
+    "short_name": "Nome embaixo do icone",
+    "start_url": "/index.html",
+    "scope": ".",
+    "display": "standalone",
+    "background_color": "#fabaca",
+    "theme_color": "#3f6ab4",
+    "description": "Descrição mostrada quando o app fica como favorito, passando o mouse por cima",
+    "dir":"ltr",
+    "lang": "pt-br",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/src/images/icons/app-icon-48x48.png",
+            "type": "image/png",
+            "sizes": "48x48"
+        }
+    ],
+    "related_applications": [
+        {
+            "platform": "play",
+            "url": "https://play.google.com/store/apps/details?id=com.example.app1",
+            "id": "com.example.app1"
+        }
+    ]
+}

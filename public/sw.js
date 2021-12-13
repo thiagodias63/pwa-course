@@ -1,5 +1,5 @@
-const CACHE_STATIC_NAME = 'static-'+Math.random();
-const CACHE_DYNAMIC_NAME = 'dynamic-'+Math.random();
+const CACHE_STATIC_NAME = 'static-'+'2';
+const CACHE_DYNAMIC_NAME = 'dynamic-'+'2';
 self.addEventListener('install', function(event) {
     console.log('[Service Worker] Installing Service worker', event)
     event.waitUntil(
@@ -9,6 +9,7 @@ self.addEventListener('install', function(event) {
             cache.addAll([
                 '/',
                 '/index.html',
+                '/offline.html',
                 '/src/js/app.js',
                 '/src/js/feed.js',
                 '/src/js/material.min.js',
@@ -47,6 +48,7 @@ function dynamicCache (res, event) {
 }
 
 // no life-cycle 
+// Strategy: cache with network fallback
 self.addEventListener('fetch', function(event) {
     // console.log('[Service Worker] Fetching Service worker', event)
     // event.respondWith(fetch(event.request)); // overwrite the data that is send
@@ -58,6 +60,9 @@ self.addEventListener('fetch', function(event) {
                     .then((res) => dynamicCache(res, event))
                     .catch(err => {
                         console.error(err)
+                        return caches.open(CACHE_STATIC_NAME).then(function (cache) {
+                            return cache.match('/offline.html')
+                        });
                     })
             }
             // return the cached response
@@ -66,6 +71,26 @@ self.addEventListener('fetch', function(event) {
     )
 })
 
+// Strategy: cache with cache only
+// self.addEventListener('fetch', function(event) {
+//     // console.log('[Service Worker] Fetching Service worker', event)
+//     // event.respondWith(fetch(event.request)); // overwrite the data that is send
+//     event.respondWith(
+//         // return the cached response
+//         caches.match(event.request)
+//     )
+// })
+
+// Strategy: network only
+// self.addEventListener('fetch', function(event) {
+//     // console.log('[Service Worker] Fetching Service worker', event)
+//     // event.respondWith(fetch(event.request)); // overwrite the data that is send
+//     event.respondWith(
+//      fetch(event.request)
+//     )
+// })
+
+// Strategy: network with cache fallback
 
 self.addEventListener('beforeinstallprompt', function(event) {
     console.log('[Service Worker] Before install prompt', event);

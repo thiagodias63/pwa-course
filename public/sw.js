@@ -129,7 +129,7 @@ function cacheThenNetwork(event) {
                     return fetch(event.request)
                     .then(function(response) {
                         // cleaning the cache
-                        trimCache(CACHE_DYNAMIC_NAME, 3)
+                        // trimCache(CACHE_DYNAMIC_NAME, 3)
                         cache.put(event.request, response.clone());
                         return response;
                     })

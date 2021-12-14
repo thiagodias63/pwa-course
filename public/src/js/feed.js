@@ -61,11 +61,29 @@ function createCard() {
   sharedMomentsArea.appendChild(cardWrapper);
 }
 
-fetch('https://httpbin.org/get')
+// Stategy: cache then network
+var url = 'https://httpbin.org/get'
+var networkDataReceived = false;
+fetch(url)
   .then(function(res) {
     return res.json();
   })
   .then(function(data) {
-    console.log(data);
+    networkDataReceived = true;
+    console.log('From web', data);
     createCard();
   });
+
+
+if ('caches' in window) {
+  caches.match(url).then(function(response) {
+    if (response) {
+      return response.json();
+    }
+  }).then(function(data) {
+    console.log('From cache', data);
+    if (networkDataReceived) return;
+    networkDataReceived = true;
+    createCard();
+  })
+}

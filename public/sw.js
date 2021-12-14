@@ -1,25 +1,41 @@
 const CACHE_STATIC_NAME = 'static-'+'2';
 const CACHE_DYNAMIC_NAME = 'dynamic-'+'2';
+const STATIC_FILES = [
+    '/',
+    '/index.html',
+    '/offline.html',
+    '/src/js/app.js',
+    '/src/js/feed.js',
+    '/src/js/material.min.js',
+    'src/css/app.css',
+    'src/css/feed.css',
+    'src/images/main-image.jpg',
+    'https://fonts.googleapis.com/css?family=Roboto:400,700',
+    'https://fonts.googleapis.com/icon?family=Material+Icons',
+    'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'
+];
+
+
+function trimCache(cacheName, maxItems) {
+    caches.open(cacheName)
+        .then(function(cache) {
+            return cache.keys()
+        }).then(function(keys){
+            if (keys.length > maxItems) {
+                cache.delete(keys[0])
+                    .then(trimCache(cacheName, maxItems));
+            }
+        })
+}
+
+
 self.addEventListener('install', function(event) {
     console.log('[Service Worker] Installing Service worker', event)
     event.waitUntil(
         caches.open(CACHE_STATIC_NAME).then((cache) => {
             console.log('[Service Worker] Precaching App Shell');
             // cache.add('/src/js/app.js')
-            cache.addAll([
-                '/',
-                '/index.html',
-                '/offline.html',
-                '/src/js/app.js',
-                '/src/js/feed.js',
-                '/src/js/material.min.js',
-                'src/css/app.css',
-                'src/css/feed.css',
-                'src/images/main-image.jpg',
-                'https://fonts.googleapis.com/css?family=Roboto:400,700',
-                'https://fonts.googleapis.com/icon?family=Material+Icons',
-                'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'
-            ])
+            cache.addAll(STATIC_FILES)
         })
     )
 })
@@ -49,7 +65,7 @@ function dynamicCache (res, event) {
 
 // no life-cycle 
 // Strategy: cache with network fallback
-self.addEventListener('fetch', function(event) {
+function cacheWithNetworkFallback(event) {
     // console.log('[Service Worker] Fetching Service worker', event)
     // event.respondWith(fetch(event.request)); // overwrite the data that is send
     event.respondWith(
@@ -61,7 +77,9 @@ self.addEventListener('fetch', function(event) {
                     .catch(err => {
                         console.error(err)
                         return caches.open(CACHE_STATIC_NAME).then(function (cache) {
-                            return cache.match('/offline.html')
+                            if (event.request.url.headers.get('accept').includes('text/html')) {
+                                return cache.match('/offline.html')
+                            }
                         });
                     })
             }
@@ -69,29 +87,66 @@ self.addEventListener('fetch', function(event) {
             return response;
         })
     )
-})
+}
 
 // Strategy: cache with cache only
-// self.addEventListener('fetch', function(event) {
-//     // console.log('[Service Worker] Fetching Service worker', event)
-//     // event.respondWith(fetch(event.request)); // overwrite the data that is send
-//     event.respondWith(
-//         // return the cached response
-//         caches.match(event.request)
-//     )
-// })
+function cacheWithCacheOnly(event) {
+    // console.log('[Service Worker] Fetching Service worker', event)
+    // event.respondWith(fetch(event.request)); // overwrite the data that is send
+    event.respondWith(
+        // return the cached response
+        caches.match(event.request)
+    )
+}
 
 // Strategy: network only
-// self.addEventListener('fetch', function(event) {
-//     // console.log('[Service Worker] Fetching Service worker', event)
-//     // event.respondWith(fetch(event.request)); // overwrite the data that is send
-//     event.respondWith(
-//      fetch(event.request)
-//     )
-// })
+function networkOnly(event) {
+    // console.log('[Service Worker] Fetching Service worker', event)
+    // event.respondWith(fetch(event.request)); // overwrite the data that is send
+    event.respondWith(
+     fetch(event.request)
+    )
+}
 
 // Strategy: network with cache fallback
+function networkWithCacheFallback(event) {
+    event.respondWith(
+        fetch(event.request)
+            .then((res) => dynamicCache(res, event))
+            .catch(function(err) {
+                caches.match(event.request)
+            })
+    )
+}
+
+// Stategy: cache then network
+function cacheThenNetwork(event) {
+    var url = 'https://httpbin.org/get'
+    if (event.request.url.indexOf(url) > -1) {
+        event.respondWith(
+            caches.open(CACHE_DYNAMIC_NAME)
+                .then(function(cache) {
+                    return fetch(event.request)
+                    .then(function(response) {
+                        // cleaning the cache
+                        trimCache(CACHE_DYNAMIC_NAME, 3)
+                        cache.put(event.request, response.clone());
+                        return response;
+                    })
+                })
+        )
+    } else if (STATIC_FILES.includes(event.request.url)) {
+        // Strategy: cache with cache only
+        cacheWithCacheOnly(event);
+    }
+     else {
+        // Strategy: cache with network fallback
+        cacheWithNetworkFallback(event);
+    }
+}
 
 self.addEventListener('beforeinstallprompt', function(event) {
     console.log('[Service Worker] Before install prompt', event);
 })
+
+self.addEventListener('fetch', cacheThenNetwork);

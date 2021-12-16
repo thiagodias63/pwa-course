@@ -1,9 +1,14 @@
+importScripts('/src/js/idb.js');
+importScripts('/src/js/idb-store.js');
+
 const CACHE_STATIC_NAME = 'static-'+'2';
 const CACHE_DYNAMIC_NAME = 'dynamic-'+'2';
 const STATIC_FILES = [
     '/',
     '/index.html',
     '/offline.html',
+    '/src/js/idb.js',
+    '/src/js/idb-store.js',
     '/src/js/app.js',
     '/src/js/feed.js',
     '/src/js/material.min.js',
@@ -35,6 +40,7 @@ self.addEventListener('install', function(event) {
         caches.open(CACHE_STATIC_NAME).then((cache) => {
             console.log('[Service Worker] Precaching App Shell');
             // cache.add('/src/js/app.js')
+            // App Shell
             cache.addAll(STATIC_FILES)
         })
     )
@@ -121,19 +127,31 @@ function networkWithCacheFallback(event) {
 
 // Stategy: cache then network
 function cacheThenNetwork(event) {
-    var url = 'https://httpbin.org/get'
+    var url = 'https://ficha-academia-web-top.firebaseio.com/posts'
     if (event.request.url.indexOf(url) > -1) {
         event.respondWith(
-            caches.open(CACHE_DYNAMIC_NAME)
-                .then(function(cache) {
-                    return fetch(event.request)
-                    .then(function(response) {
-                        // cleaning the cache
-                        // trimCache(CACHE_DYNAMIC_NAME, 3)
-                        cache.put(event.request, response.clone());
-                        return response;
-                    })
-                })
+            fetch(event.request)
+                .then(function(response) {
+                    var clonedResponse = response.clone();
+                    clonedResponse.json()
+                        .then((data) => {
+                            for (let key in data) {
+                                writeData(data[key]);
+                            }
+                        });
+                    return response;
+            })
+            // version with cache
+            // caches.open(CACHE_DYNAMIC_NAME)
+            //     .then(function(cache) {
+            // return fetch(event.request)
+            // .then(function(response) {
+            //     // cleaning the cache
+            //     // trimCache(CACHE_DYNAMIC_NAME, 3)
+            //     cache.put(event.request, response.clone());
+            //     return response;
+            // })
+            // })
         )
     } else if (STATIC_FILES.includes(event.request.url)) {
         // Strategy: cache with cache only

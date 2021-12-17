@@ -23,3 +23,23 @@ function readData() {
         return store.getAll();
     })
 }
+
+function clearAllData() {
+    return dbPromise.then((db) => {
+        let transactionOperation = db.transaction('posts', 'readwrite');
+        let store = transactionOperation.objectStore('posts');
+        store.clear();
+        return transactionOperation.complete;
+    })
+}
+
+function clearItemFromData(itemIndex) {
+    return dbPromise.then((db) => {
+        let transactionOperation = db.transaction('posts', 'readwrite');
+        let store = transactionOperation.objectStore('posts');
+        store.delete(itemIndex);
+        return transactionOperation.complete;
+    }).then(function() {
+        console.log(`item ${itemIndex} deleted`);
+    })
+}git

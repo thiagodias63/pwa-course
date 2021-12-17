@@ -133,12 +133,15 @@ function cacheThenNetwork(event) {
             fetch(event.request)
                 .then(function(response) {
                     var clonedResponse = response.clone();
-                    clonedResponse.json()
-                        .then((data) => {
-                            for (let key in data) {
-                                writeData(data[key]);
-                            }
-                        });
+                    clearAllData()
+                    .then(() => {
+                        return clonedResponse.json()
+                    })
+                    .then((data) => {
+                        for (let key in data) {
+                            writeData(data[key]);
+                        }
+                    });
                     return response;
             })
             // version with cache

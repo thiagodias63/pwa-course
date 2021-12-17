@@ -88,15 +88,25 @@ fetch(url)
     updateUI(mountCardData(data));
   });
 
+// Substituído cache por indexDB
+// if ('caches' in window) {
+//   caches.match(url).then(function(response) {
+//     if (response) {
+//       return response.json();
+//     }
+//   }).then(function(data) {
+//     console.log('From cache', data);
+//     if (networkDataReceived) return;
+//     updateUI(mountCardData(data));
+//   })
+// }
 
-if ('caches' in window) {
-  caches.match(url).then(function(response) {
-    if (response) {
-      return response.json();
+
+if ('indexDB' in window) {
+  readData().then(function(data) {
+    if (!networkDataReceived) {
+      console.log('From IDB', data);
+      updateUI(data);
     }
-  }).then(function(data) {
-    console.log('From cache', data);
-    if (networkDataReceived) return;
-    updateUI(mountCardData(data));
   })
 }

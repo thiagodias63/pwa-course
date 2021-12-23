@@ -1,8 +1,9 @@
 importScripts("/src/js/idb.js");
 importScripts("/src/js/idb-store.js");
-
-const CACHE_STATIC_NAME = "static-" + "2";
-const CACHE_DYNAMIC_NAME = "dynamic-" + "2";
+const url = "https://ficha-academia-web-top.firebaseio.com/posts.json";
+const cache_version = 9;
+const CACHE_STATIC_NAME = "static-" + 3;
+const CACHE_DYNAMIC_NAME = "dynamic-" + cache_version;
 const STATIC_FILES = [
   "/",
   "/index.html",
@@ -33,29 +34,29 @@ function trimCache(cacheName, maxItems) {
     });
 }
 
-function sendData(post) {
-  fetch(url, {
-    method: "post",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify({
-      ...post,
-      image:
-        "https://firebasestorage.googleapis.com/v0/b/ficha-academia-web-top.appspot.com/o/sf-boat.jpg?alt=media&token=313e7833-2f83-44ac-a005-3b8ec33f26b4",
-    }),
-  })
-    .then(function (response) {
-      console.log("[Service Worker] Send Data", response);
-      if (response.ok) {
-        clearItemFromData(post.id, "sync-post");
-      }
-    })
-    .catch((error) => {
-      console.error(error);
+const sendData = async (post) => {
+  try {
+    const response = await fetch(url, {
+      method: "post",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        ...post,
+        image:
+          "https://firebasestorage.googleapis.com/v0/b/ficha-academia-web-top.appspot.com/o/sf-boat.jpg?alt=media&token=313e7833-2f83-44ac-a005-3b8ec33f26b4",
+      }),
     });
-}
+    console.log("[Service Worker] Send Data", response);
+    if (response.ok) {
+      console.log(post.id);
+      clearItemFromData(post.id, "sync-posts");
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};
 
 self.addEventListener("install", function (event) {
   console.log("[Service Worker] Installing Service worker", event);
@@ -183,7 +184,7 @@ function cacheThenNetwork(event) {
     // Strategy: cache with cache only
     cacheWithCacheOnly(event);
   } else {
-    // Strategy: cache with network fallback
+    // Strategy: cache Fwith network fallback
     cacheWithNetworkFallback(event);
   }
 }
@@ -196,10 +197,11 @@ self.addEventListener("fetch", cacheThenNetwork);
 
 self.addEventListener("sync", function (event) {
   console.log("[Service Worker] Background syncing", event);
-  if (event.tag === "sync-new-posts") {
+  if (event.tag == "sync-new-posts") {
     console.log("[Service Worker] Syncing new posts");
     event.waitUntil(
-      readAllData("sync-posts").then(function (posts) {
+      readData("sync-posts").then(function (posts) {
+        console.log({ posts });
         for (post of posts) {
           sendData(post);
         }

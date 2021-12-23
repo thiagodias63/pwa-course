@@ -127,7 +127,7 @@ function sendData() {
     image:
       "https://firebasestorage.googleapis.com/v0/b/ficha-academia-web-top.appspot.com/o/sf-boat.jpg?alt=media&token=313e7833-2f83-44ac-a005-3b8ec33f26b4",
   };
-  // talvez colocar essa função como async function para pegar o id corretamente
+
   fetch(url, {
     method: "post",
     headers: {
@@ -152,23 +152,26 @@ form.addEventListener("submit", function (event) {
   closeCreatePostModal();
 
   if ("serviceWorker" in navigator && "SyncManager" in window) {
-    navigator.serviceWorker.ready.then(function (serviceWorker) {
+    navigator.serviceWorker.ready.then(function (sw) {
       const post = {
         id: new Date().toISOString(),
         title: inputTitle.value,
         location: inputLocation.value,
       };
-      writeData("sync-posts", post)
+      writeData(post, "sync-posts")
         .then(function () {
-          return serviceWorker.sync.register("sync-new-posts");
+          console.log("register stored in sync-post");
+          return sw.sync.register("sync-new-posts");
         })
         .then(function () {
-          const snackbarContainer =
-            document.querySelector("#confimation-toast");
+          const snackbarContainer = document.querySelector(
+            "#confirmation-toast"
+          );
           const data = {
             message: "Your post was saved for syncing!",
           };
-          snackbarContainer.MaterialSnackbar.showNackbar(data);
+
+          snackbarContainer.MaterialSnackbar.showSnackbar(data);
         })
         .catch(function (err) {
           console.log(err);

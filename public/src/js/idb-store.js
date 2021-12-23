@@ -1,5 +1,5 @@
-function createObjectStore(storeName) {
-  if (!db.objectStoreNames.contains()) {
+function createObjectStore(db, storeName) {
+  if (!db.objectStoreNames.contains(storeName)) {
     // create table
     db.createObjectStore(storeName, {
       keyPath: "id", // the pk
@@ -8,8 +8,8 @@ function createObjectStore(storeName) {
 }
 
 var dbPromise = idb.open("feed-post-store", 1, function (db) {
-  createObjectStore("posts");
-  createObjectStore("sync-posts");
+  createObjectStore(db, "posts");
+  createObjectStore(db, "sync-posts");
 });
 
 function writeData(writingData, storeName = "posts") {
@@ -50,4 +50,3 @@ function clearItemFromData(itemIndex, storeName = "posts") {
       console.log(`item ${itemIndex} deleted`);
     });
 }
-git;

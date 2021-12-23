@@ -1,45 +1,53 @@
-
-var dbPromise = idb.open('feed-post-store', 1, function(db) {
-    if (!db.objectStoreNames.contains('posts'));
+function createObjectStore(storeName) {
+  if (!db.objectStoreNames.contains()) {
     // create table
-    db.createObjectStore('posts', {
-        keyPath: 'id' // the pk
+    db.createObjectStore(storeName, {
+      keyPath: "id", // the pk
     });
+  }
+}
+
+var dbPromise = idb.open("feed-post-store", 1, function (db) {
+  createObjectStore("posts");
+  createObjectStore("sync-posts");
 });
 
-function writeData(writingData) {
-    return dbPromise.then((db) => {
-        let transactionOperation = db.transaction('posts', 'readwrite');
-        let store = transactionOperation.objectStore('posts');
-        store.put(writingData);
-        return transactionOperation.complete;
+function writeData(writingData, storeName = "posts") {
+  return dbPromise.then((db) => {
+    let transactionOperation = db.transaction(storeName, "readwrite");
+    let store = transactionOperation.objectStore(storeName);
+    store.put(writingData);
+    return transactionOperation.complete;
+  });
+}
+
+function readData(storeName = "posts") {
+  return dbPromise.then((db) => {
+    let transactionOperation = db.transaction(storeName, "readonly");
+    let store = transactionOperation.objectStore(storeName);
+    return store.getAll();
+  });
+}
+
+function clearAllData(storeName = "posts") {
+  return dbPromise.then((db) => {
+    let transactionOperation = db.transaction(storeName, "readwrite");
+    let store = transactionOperation.objectStore(storeName);
+    store.clear();
+    return transactionOperation.complete;
+  });
+}
+
+function clearItemFromData(itemIndex, storeName = "posts") {
+  return dbPromise
+    .then((db) => {
+      let transactionOperation = db.transaction(storeName, "readwrite");
+      let store = transactionOperation.objectStore(storeName);
+      store.delete(itemIndex);
+      return transactionOperation.complete;
+    })
+    .then(function () {
+      console.log(`item ${itemIndex} deleted`);
     });
 }
-
-function readData() {
-    return dbPromise.then((db) => {
-        let transactionOperation = db.transaction('posts', 'readonly');
-        let store = transactionOperation.objectStore('posts');
-        return store.getAll();
-    })
-}
-
-function clearAllData() {
-    return dbPromise.then((db) => {
-        let transactionOperation = db.transaction('posts', 'readwrite');
-        let store = transactionOperation.objectStore('posts');
-        store.clear();
-        return transactionOperation.complete;
-    })
-}
-
-function clearItemFromData(itemIndex) {
-    return dbPromise.then((db) => {
-        let transactionOperation = db.transaction('posts', 'readwrite');
-        let store = transactionOperation.objectStore('posts');
-        store.delete(itemIndex);
-        return transactionOperation.complete;
-    }).then(function() {
-        console.log(`item ${itemIndex} deleted`);
-    })
-}git
+git;

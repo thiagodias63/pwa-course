@@ -10,6 +10,7 @@ const STATIC_FILES = [
   "/offline.html",
   "/src/js/idb.js",
   "/src/js/idb-store.js",
+  "/src/js/util.js",
   "/src/js/app.js",
   "/src/js/feed.js",
   "/src/js/material.min.js",
@@ -36,17 +37,26 @@ function trimCache(cacheName, maxItems) {
 
 const sendData = async (post) => {
   try {
+    const postData = new FormData()
+    postData.append("id", post.id)
+    postData.append("title", post.title)
+    postData.append("location", post.location)
+    postData.append("file", post.picture, post.id + ".png")
+    postData.append("rawLocation", post.rawLocation)
+
     const response = await fetch(url, {
       method: "post",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        ...post,
-        image:
-          "https://firebasestorage.googleapis.com/v0/b/ficha-academia-web-top.appspot.com/o/sf-boat.jpg?alt=media&token=313e7833-2f83-44ac-a005-3b8ec33f26b4",
-      }),
+      // The content is no longer json, just a formData
+      // headers: {
+      //   "Content-Type": "application/json",
+      //   Accept: "application/json",
+      // },
+      // body: JSON.stringify({
+      //   ...post,
+      //   image:
+      //     "https://firebasestorage.googleapis.com/v0/b/ficha-academia-web-top.appspot.com/o/sf-boat.jpg?alt=media&token=313e7833-2f83-44ac-a005-3b8ec33f26b4",
+      // }),
+      body: postData,
     })
     console.log("[Service Worker] Send Data", response)
     if (response.ok) {

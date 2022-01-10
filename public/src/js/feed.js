@@ -76,12 +76,14 @@ function initializeMedia() {
   }
 
   navigator.mediaDevices
-    .getUserMedia({ video: true, audio: false })
+    .getUserMedia({ video: true })
     .then((stream) => {
+      console.log(stream)
       videoPlayer.srcObject = stream
       videoPlayer.style.display = "block"
     })
     .catch((error) => {
+      console.error(error)
       // user doesnt give the access
       imagePickerArea.style.display = "block"
       captureBtn.style.display = "none"
@@ -89,6 +91,7 @@ function initializeMedia() {
 }
 
 captureBtn.addEventListener("click", (event) => {
+  console.log("captureBtn - click")
   canvasPlayer.style.display = "block"
   videoPlayer.style.display = "none"
   captureBtn.style.display = "none"
@@ -100,9 +103,9 @@ captureBtn.addEventListener("click", (event) => {
     canvas.width,
     videoPlayer.videoHeight / (videoPlayer.videoWidth / canvas.width)
   )
-  videoPlayer.srcObject.getVideoTracks().forEach((track) => {
-    track.stop()
-  })
+  // videoPlayer.srcObject.getVideoTracks().forEach((track) => {
+  //   track.stop()
+  // })
   picture = dataURItoBlob(canvasPlayer.toDataURL())
 })
 
@@ -140,6 +143,7 @@ function openCreatePostModal() {
 function closeCreatePostModal() {
   // createPostArea.style.transform = "translateY(100vh)"
   // createPostArea.style.display = 'none';
+  console.log("closeCreatePostModal")
   videoPlayer.style.display = "none"
   imagePickerArea.style.display = "none"
   canvasPlayer.style.display = "none"
@@ -149,7 +153,7 @@ function closeCreatePostModal() {
   inputLocation.value = ""
   inputTitle.value = ""
   if (videoPlayer.srcObject) {
-    video.srcObject.getVideoTracks().forEach((track) => {
+    videoPlayer.srcObject.getVideoTracks().forEach((track) => {
       track.stop()
     })
   }

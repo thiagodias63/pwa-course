@@ -5,7 +5,7 @@ const enableNotificationsButtons = document.querySelectorAll(
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker
-    .register("/sw.js")
+    .register("/service-worker.js")
     .then(() => console.log("sw registered"))
     .catch((error) => console.log("sw error " + error))
 }
